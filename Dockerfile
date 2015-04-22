@@ -4,7 +4,7 @@
 #
 # The standard name for this image is openshift3_beta/ose
 #
-FROM openshift3_beta/ose-base
+FROM tdawson/base
 
 RUN yum install -y openshift && \
     yum clean all
