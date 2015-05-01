@@ -1,21 +1,18 @@
 #
-# This is the official OpenShift Origin image. It has as its entrypoint the OpenShift
-# all-in-one binary.
+# This is the base image from which all OpenShift Origin images inherit. Only packages
+# common to all downstream images should be here.
 #
-# The standard name for this image is openshift3_beta/ose
+# The standard name for this image is openshift3_beta/ose-base
 #
-FROM docker-registry.usersys.redhat.com/tdawson/base
+FROM registry.access.redhat.com/rhel
 
-RUN yum install -y openshift && \
+RUN echo [brew] > /etc/yum.repos.d/brew.repo;\
+    echo baseurl = http://buildvm-devops.usersys.redhat.com/puddle/build/OpenShiftEnterprise/3.0/latest/RH7-RHOSE-3.0/x86_64/os/ >> /etc/yum.repos.d/brew.repo;\
+    echo ui_repoid_vars = releasever basearch >> /etc/yum.repos.d/brew.repo;\
+    echo name = brew >> /etc/yum.repos.d/brew.repo;\
+    echo gpgcheck = 0 >> /etc/yum.repos.d/brew.repo;\
+    echo enabled = 1 >> /etc/yum.repos.d/brew.repo
+
+RUN yum install -y git tar wget socat hostname yum-utils --disablerepo=\* --enablerepo=rhel-7-server-rpms && \
+    yum-config-manager --disable rhel-7-server-rt-rpms && \
     yum clean all
-
-RUN ln -s /usr/bin/openshift /usr/bin/openshift-deploy && \
-    ln -s /usr/bin/openshift /usr/bin/openshift-experimental && \
-    ln -s /usr/bin/openshift /usr/bin/openshift-docker-build && \
-    ln -s /usr/bin/openshift /usr/bin/openshift-sti-build && \
-    ln -s /usr/bin/openshift /usr/bin/openshift-router
-
-ENV HOME /root
-ENV OPENSHIFTCONFIG /var/lib/openshift/openshift.local.certificates/admin/.kubeconfig
-WORKDIR /var/lib/openshift
-ENTRYPOINT ["/usr/bin/openshift"]
